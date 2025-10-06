@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Routes(app *fiber.App) {
+func Routes(app *fiber.App, productController controller.ProductController) {
 
-	app.Post("/products", controller.CreateProduct)
+	app.Post("/products", productController.CreateProduct)
 }

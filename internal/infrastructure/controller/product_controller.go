@@ -18,7 +18,7 @@ func NewProductController(createProductService application.CreateProductService)
 	}
 }
 
-func CreateProduct(ctx *fiber.Ctx) error {
+func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 
 	var productRequest dto.CreateProductRequest
 
