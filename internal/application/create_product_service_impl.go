@@ -1,22 +1,22 @@
 package application
 
 import (
+	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
-
-	"github.com/google/uuid"
 )
 
-type CreateProductServiceImpl struct{}
+type CreateProductServiceImpl struct {
+	productRepository repository.ProductRepository
+}
 
-func NewProductService() CreateProductService {
-	return &CreateProductServiceImpl{}
+func NewProductService(productRepository repository.ProductRepository) CreateProductService {
+
+	return &CreateProductServiceImpl{
+		productRepository: productRepository,
+	}
 }
 
 func (s *CreateProductServiceImpl) CreateProduct(createProductRequest *dto.CreateProductRequest) dto.ProductDto {
 
-	return dto.ProductDto{
-		Id:    uuid.New(),
-		Name:  createProductRequest.Name,
-		Price: createProductRequest.Price,
-	}
+	return s.productRepository.CreateProduct(createProductRequest)
 }
