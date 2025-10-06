@@ -1,11 +1,22 @@
 package controller
 
 import (
+	"cqrs/command/internal/application"
 	"cqrs/command/internal/infrastructure/dto"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+type ProductController struct {
+	createProductService application.CreateProductService
+}
+
+func NewProductController(createProductService application.CreateProductService) *ProductController {
+	return &ProductController{
+		createProductService: createProductService,
+	}
+}
 
 func CreateProduct(ctx *fiber.Ctx) error {
 
