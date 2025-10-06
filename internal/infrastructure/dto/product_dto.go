@@ -3,11 +3,11 @@ package dto
 import "github.com/google/uuid"
 
 type ProductDto struct {
-	Id     uuid.UUID            `json:"id"`
-	Name   string               `json:"name"`
-	Price  float64              `json:"price"`
-	Stock  float64              `json:"stock"`
-	Images []CreateProductImage `json:"images"`
+	Id     uuid.UUID         `json:"id"`
+	Name   string            `json:"name"`
+	Price  float64           `json:"price"`
+	Stock  float64           `json:"stock"`
+	Images []ProductImageDto `json:"images"`
 }
 
 type ProductImageDto struct {
