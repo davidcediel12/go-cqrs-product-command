@@ -33,5 +33,7 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 
 	fmt.Println(productRequest)
 
-	return ctx.SendString("Create Product")
+	product := c.createProductService.CreateProduct(&productRequest)
+
+	return ctx.Status(fiber.StatusCreated).JSON(product)
 }
