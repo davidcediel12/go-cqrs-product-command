@@ -5,13 +5,17 @@ import (
 	"cqrs/command/internal/infrastructure/dto"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepositoryImpl struct {
+	pool *pgxpool.Pool
 }
 
-func NewProductRepository() repository.ProductRepository {
-	return &ProductRepositoryImpl{}
+func NewProductRepository(pool *pgxpool.Pool) repository.ProductRepository {
+	return &ProductRepositoryImpl{
+		pool: pool,
+	}
 }
 
 func (r *ProductRepositoryImpl) CreateProduct(createProductRequest *dto.CreateProductRequest) dto.ProductDto {
