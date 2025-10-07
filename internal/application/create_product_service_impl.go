@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
 )
@@ -16,7 +17,7 @@ func NewProductService(productRepository repository.ProductRepository) CreatePro
 	}
 }
 
-func (s *CreateProductServiceImpl) CreateProduct(createProductRequest *dto.CreateProductRequest) dto.ProductDto {
+func (s *CreateProductServiceImpl) CreateProduct(createProductRequest *dto.CreateProductRequest, ctx context.Context) dto.ProductDto {
 
-	return s.productRepository.CreateProduct(createProductRequest)
+	return s.productRepository.CreateProduct(createProductRequest, ctx)
 }

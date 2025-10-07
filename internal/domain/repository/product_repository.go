@@ -1,7 +1,10 @@
 package repository
 
-import "cqrs/command/internal/infrastructure/dto"
+import (
+	"context"
+	"cqrs/command/internal/infrastructure/dto"
+)
 
 type ProductRepository interface {
-	CreateProduct(createProductRequest *dto.CreateProductRequest) dto.ProductDto
+	CreateProduct(createProductRequest *dto.CreateProductRequest, context context.Context) dto.ProductDto
 }
