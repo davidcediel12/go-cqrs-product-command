@@ -44,6 +44,8 @@ func (p *SnsPublisher) PublishNewProduct(ctx context.Context, topic string, prod
 		return fmt.Errorf("cannot publish message %v to topic %v: %w", string(jsonData), topic, err)
 	}
 
+	log.Printf("product %v published correctly", productDto.Id)
+
 	return err
 
 }
