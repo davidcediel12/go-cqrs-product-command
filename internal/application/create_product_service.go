@@ -6,5 +6,5 @@ import (
 )
 
 type CreateProductService interface {
-	CreateProduct(createProductRequest *dto.CreateProductRequest, context context.Context) dto.ProductDto
+	CreateProduct(createProductRequest *dto.CreateProductRequest, context context.Context) (dto.ProductDto, error)
 }
