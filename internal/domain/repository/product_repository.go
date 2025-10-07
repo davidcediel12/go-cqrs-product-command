@@ -6,5 +6,8 @@ import (
 )
 
 type ProductRepository interface {
-	CreateProduct(createProductRequest *dto.CreateProductRequest, context context.Context) (dto.ProductDto, error)
+	CreateProduct(
+		context context.Context,
+		createProductRequest *dto.CreateProductRequest,
+	) (dto.ProductDto, error)
 }

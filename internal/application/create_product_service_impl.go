@@ -17,8 +17,8 @@ func NewProductService(productRepository repository.ProductRepository) CreatePro
 	}
 }
 
-func (s *CreateProductServiceImpl) CreateProduct(createProductRequest *dto.CreateProductRequest,
-	ctx context.Context) (dto.ProductDto, error) {
+func (s *CreateProductServiceImpl) CreateProduct(ctx context.Context,
+	createProductRequest *dto.CreateProductRequest) (dto.ProductDto, error) {
 
-	return s.productRepository.CreateProduct(createProductRequest, ctx)
+	return s.productRepository.CreateProduct(ctx, createProductRequest)
 }
