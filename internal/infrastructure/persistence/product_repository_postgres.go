@@ -21,7 +21,8 @@ func NewProductRepository(pool *pgxpool.Pool) repository.ProductRepository {
 	}
 }
 
-func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context, createProductRequest *dto.CreateProductRequest) (dto.ProductDto, error) {
+func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
+	createProductRequest *dto.CreateProductRequest) (dto.ProductDto, error) {
 
 	transaction, err := r.pool.Begin(ctx)
 
@@ -50,6 +51,10 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context, createProduct
 		return dto.ProductDto{}, fmt.Errorf("saving product failed: %w", err)
 	}
 
+	if err := transaction.Commit(ctx); err != nil {
+		return dto.ProductDto{}, fmt.Errorf("Error while commiting the transaction: %w", err)
+	}
+
 	return dto.ProductDto{
 		Id:     productId,
 		Name:   createProductRequest.Name,
@@ -62,8 +67,7 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context, createProduct
 func (r *ProductRepositoryImpl) saveProductImages(ctx context.Context, transaction pgx.Tx,
 	productImages []dto.CreateProductImage, productId uuid.UUID) ([]dto.ProductImageDto, error) {
 
-	var createdImages []dto.ProductImageDto
-
+	createdImages := make([]dto.ProductImageDto, 0, len(productImages))
 	queryProductImage := `
 		INSERT INTO product_images(id, product_id, url, is_primary) values ($1, $2, $3, $4)
 	`
@@ -76,7 +80,7 @@ func (r *ProductRepositoryImpl) saveProductImages(ctx context.Context, transacti
 			image.Url, image.IsPrimary)
 
 		if err != nil {
-			return []dto.ProductImageDto{}, fmt.Errorf("saving product image failed: %w", err)
+			return []dto.ProductImageDto{}, fmt.Errorf("saving product image %s for product %s failed: %w", image.Url, productId, err)
 		}
 
 		createdImages = append(createdImages, dto.ProductImageDto{
