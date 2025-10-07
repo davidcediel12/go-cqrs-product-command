@@ -68,7 +68,7 @@ func (r *ProductRepositoryImpl) saveProductImages(context context.Context,
 			image.Url, image.IsPrimary)
 
 		if err != nil {
-			return []dto.ProductImageDto{}, fmt.Errorf("Saving product image failed: %w", err)
+			return []dto.ProductImageDto{}, fmt.Errorf("saving product image failed: %w", err)
 		}
 
 		createdImages = append(createdImages, dto.ProductImageDto{
