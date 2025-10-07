@@ -30,7 +30,7 @@ func (s *CreateProductServiceImpl) CreateProduct(ctx context.Context,
 		return dto.ProductDto{}, err
 	}
 
-	err = s.messagePublisher.PublishNewProduct(ctx, "products", &productDto)
+	err = s.messagePublisher.PublishNewProduct(ctx, "product", &productDto)
 
 	if err != nil {
 		return dto.ProductDto{}, err
