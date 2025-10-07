@@ -4,7 +4,7 @@ import (
 	"context"
 	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
-	"log"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,7 +20,8 @@ func NewProductRepository(pool *pgxpool.Pool) repository.ProductRepository {
 	}
 }
 
-func (r *ProductRepositoryImpl) CreateProduct(createProductRequest *dto.CreateProductRequest, context context.Context) dto.ProductDto {
+func (r *ProductRepositoryImpl) CreateProduct(createProductRequest *dto.CreateProductRequest,
+	context context.Context) (dto.ProductDto, error) {
 
 	query := `
 		INSERT INTO products(id, product_name, price, stock) values ($1, $2, $3, $4)
@@ -32,10 +33,14 @@ func (r *ProductRepositoryImpl) CreateProduct(createProductRequest *dto.CreatePr
 		createProductRequest.Price, createProductRequest.Stock)
 
 	if err != nil {
-		log.Fatal("Saving product failed:", err)
+		return dto.ProductDto{}, fmt.Errorf("saving product failed: %w", err)
 	}
 
-	productImages := r.saveProductImages(context, createProductRequest.Images, productId)
+	productImages, err := r.saveProductImages(context, createProductRequest.Images, productId)
+
+	if err != nil {
+		return dto.ProductDto{}, fmt.Errorf("saving product failed: %w", err)
+	}
 
 	return dto.ProductDto{
 		Id:     productId,
@@ -43,11 +48,11 @@ func (r *ProductRepositoryImpl) CreateProduct(createProductRequest *dto.CreatePr
 		Price:  createProductRequest.Price,
 		Stock:  createProductRequest.Stock,
 		Images: productImages,
-	}
+	}, nil
 }
 
 func (r *ProductRepositoryImpl) saveProductImages(context context.Context,
-	productImages []dto.CreateProductImage, productId uuid.UUID) []dto.ProductImageDto {
+	productImages []dto.CreateProductImage, productId uuid.UUID) ([]dto.ProductImageDto, error) {
 
 	var createdImages []dto.ProductImageDto
 
@@ -63,7 +68,7 @@ func (r *ProductRepositoryImpl) saveProductImages(context context.Context,
 			image.Url, image.IsPrimary)
 
 		if err != nil {
-			log.Fatal("Saving product image failed:", err)
+			return []dto.ProductImageDto{}, fmt.Errorf("Saving product image failed: %w", err)
 		}
 
 		createdImages = append(createdImages, dto.ProductImageDto{
@@ -74,6 +79,6 @@ func (r *ProductRepositoryImpl) saveProductImages(context context.Context,
 
 	}
 
-	return createdImages
+	return createdImages, nil
 
 }
