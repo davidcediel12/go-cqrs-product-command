@@ -6,6 +6,7 @@ import (
 	"cqrs/command/internal/infrastructure/dto"
 	"fmt"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -54,6 +55,8 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 	if err := transaction.Commit(ctx); err != nil {
 		return dto.ProductDto{}, fmt.Errorf("Error while commiting the transaction: %w", err)
 	}
+
+	log.Infof("Product successfully saved with ID: %v", productId)
 
 	return dto.ProductDto{
 		Id:     productId,
