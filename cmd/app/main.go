@@ -7,6 +7,7 @@ import (
 	"cqrs/command/internal/infrastructure/messaging"
 	"cqrs/command/internal/infrastructure/persistence"
 	"cqrs/command/internal/infrastructure/routes"
+	"cqrs/command/internal/infrastructure/storage"
 	"fmt"
 	"log"
 	"time"
@@ -14,8 +15,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+)
+
+var (
+	productController *controller.ProductController
 )
 
 func main() {
@@ -26,18 +33,7 @@ func main() {
 		log.Fatal("Unable to connect to AWS services")
 	}
 
-	snsClient := sns.NewFromConfig(sdkConfig)
-
-	messagePublisher := messaging.NewSnsPublisher(snsClient)
-
-	pool := connectToPostgres()
-	defer pool.Close()
-
-	productRepository := persistence.NewProductRepository(pool)
-
-	createProductService := application.NewProductService(productRepository, messagePublisher)
-
-	productController := controller.NewProductController(createProductService)
+	injectDependencies(sdkConfig)
 
 	app := fiber.New()
 
@@ -66,4 +62,27 @@ func connectToPostgres() *pgxpool.Pool {
 
 	return pool
 
+}
+
+func injectDependencies(sdkConfig aws.Config) {
+
+	snsClient := sns.NewFromConfig(sdkConfig)
+
+	s3Client := s3.NewFromConfig(sdkConfig)
+
+	s3PresignClient := s3.NewPresignClient(s3Client)
+
+	messagePublisher := messaging.NewSnsPublisher(snsClient)
+
+	pool := connectToPostgres()
+	defer pool.Close()
+
+	storageService := storage.NewStorageService(s3PresignClient)
+	generateImageService := application.NewGenerateImageService(storageService)
+
+	productRepository := persistence.NewProductRepository(pool)
+
+	createProductService := application.NewProductService(productRepository, messagePublisher)
+
+	productController = controller.NewProductController(createProductService, generateImageService)
 }
