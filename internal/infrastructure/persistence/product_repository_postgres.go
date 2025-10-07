@@ -31,7 +31,9 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 		return dto.ProductDto{}, err
 	}
 
-	defer transaction.Rollback(ctx)
+	defer func() {
+		_ = transaction.Rollback(ctx)
+	}()
 
 	query := `
 		INSERT INTO products(id, product_name, price, stock) values ($1, $2, $3, $4)
