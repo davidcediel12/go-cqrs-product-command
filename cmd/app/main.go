@@ -28,6 +28,9 @@ var (
 
 func main() {
 
+	pool := connectToPostgres()
+	defer pool.Close()
+
 	sdkConfig, err := config.LoadDefaultConfig(context.Background())
 
 	if err != nil {
@@ -36,7 +39,7 @@ func main() {
 
 	logger.Init()
 
-	injectDependencies(sdkConfig)
+	injectDependencies(sdkConfig, pool)
 
 	app := fiber.New()
 
@@ -67,7 +70,7 @@ func connectToPostgres() *pgxpool.Pool {
 
 }
 
-func injectDependencies(sdkConfig aws.Config) {
+func injectDependencies(sdkConfig aws.Config, pool *pgxpool.Pool) {
 
 	snsClient := sns.NewFromConfig(sdkConfig)
 
@@ -76,9 +79,6 @@ func injectDependencies(sdkConfig aws.Config) {
 	s3PresignClient := s3.NewPresignClient(s3Client)
 
 	messagePublisher := messaging.NewSnsPublisher(snsClient)
-
-	pool := connectToPostgres()
-	defer pool.Close()
 
 	storageService := storage.NewStorageService(s3PresignClient)
 	generateImageService := application.NewGenerateImageService(storageService)
