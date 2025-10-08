@@ -1,0 +1,66 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-command
+  labels:
+    app: product-command
+spec:
+  selector:
+    matchLabels:
+      app: product-command
+  template:
+    metadata:
+      labels:
+        app: product-command
+    spec:
+      containers:
+
+        - name: product-command
+          image: davidcediel12/go-product-command:latest
+          ports:
+            - containerPort: 8080
+          envFrom: 
+            - configMapRef: 
+                name: product-cqrs
+          env: 
+            - name: DB_USER 
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: DB_PASSWORD 
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+
+
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: aws-credentials 
+              mountPath: /root/.aws
+      volumes: 
+        - name: aws-credentials 
+          hostPath: 
+            path: /run/desktop/mnt/host/c/Users/esdag/.aws
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-command
+spec:
+  selector: 
+    app: product-command
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
