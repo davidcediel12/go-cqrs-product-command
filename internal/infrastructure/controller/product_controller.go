@@ -36,13 +36,11 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 	var productRequest dto.CreateProductRequest
 
 	if err := ctx.BodyParser(&productRequest); err != nil {
-		fmt.Println(err)
+		logger.Log.WithError(err).Error("Error while parsing the body to create a product")
 		return getInvalidRequest(ctx)
 	}
 
 	logger.Log.Infof("Received request to create product %v", productRequest.Name)
-
-	fmt.Println(productRequest)
 
 	product, err := c.createProductService.CreateProduct(ctx.UserContext(), &productRequest)
 
@@ -126,9 +124,9 @@ func getImageNames(ctx *fiber.Ctx) ([]string, error) {
 	var imageUrlsRequest dto.ImageUrlsRequest
 
 	if err := ctx.BodyParser(&imageUrlsRequest); err != nil {
-		fmt.Println(err)
+		logger.Log.WithError(err).Error("Error while parsing the body to generate image urls")
 
-		return nil, getInvalidRequest(ctx)
+		return nil, fmt.Errorf("invalid request body: %w", err)
 	}
 
 	imageNames := make([]string, 0, len(imageUrlsRequest.Images))
