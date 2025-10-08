@@ -40,6 +40,8 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 		return getInvalidRequest(ctx)
 	}
 
+	logger.Log.Infof("Received request to create product %v", productRequest.Name)
+
 	fmt.Println(productRequest)
 
 	product, err := c.createProductService.CreateProduct(ctx.UserContext(), &productRequest)
@@ -58,6 +60,8 @@ func (c *ProductController) CreateImageUrls(ctx *fiber.Ctx) error {
 	if err != nil {
 		return getInvalidRequest(ctx)
 	}
+
+	logger.Log.Infof("Received request to generate urls for %v", imageNames)
 
 	urls, err := c.generateImageUrlService.GenerateUrls(ctx.UserContext(), imageNames)
 

@@ -5,6 +5,7 @@ import (
 	"cqrs/command/internal/application/ports"
 	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
+	"cqrs/command/internal/logger"
 )
 
 type CreateProductServiceImpl struct {
@@ -30,11 +31,15 @@ func (s *CreateProductServiceImpl) CreateProduct(ctx context.Context,
 		return dto.ProductDto{}, err
 	}
 
-	err = s.messagePublisher.PublishNewProduct(ctx, "product", &productDto)
+	logger.Log.Infof("Product %v created", productDto.Id)
+
+	err = s.messagePublisher.PublishNewProduct(ctx, "product", &productDto) // TODO change to env var
 
 	if err != nil {
 		return dto.ProductDto{}, err
 	}
+
+	logger.Log.Infof("Message to indicate that product %v was created published", productDto.Id)
 
 	return productDto, nil
 }
