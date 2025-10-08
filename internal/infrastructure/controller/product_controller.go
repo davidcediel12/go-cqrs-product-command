@@ -4,10 +4,16 @@ import (
 	"cqrs/command/internal/application"
 	customerrors "cqrs/command/internal/custom_errors"
 	"cqrs/command/internal/infrastructure/dto"
+	"cqrs/command/internal/logger"
 	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	CREATE_PRODUCT      string = "create_product"
+	GENERATE_IMAGE_URLS string = "generate_image_urls"
 )
 
 type ProductController struct {
@@ -39,7 +45,7 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 	product, err := c.createProductService.CreateProduct(ctx.UserContext(), &productRequest)
 
 	if err != nil {
-		manageError(ctx, err)
+		manageError(ctx, err, CREATE_PRODUCT)
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(product)
@@ -56,7 +62,7 @@ func (c *ProductController) CreateImageUrls(ctx *fiber.Ctx) error {
 	urls, err := c.generateImageUrlService.GenerateUrls(ctx.UserContext(), imageNames)
 
 	if err != nil {
-		manageError(ctx, err)
+		manageError(ctx, err, GENERATE_IMAGE_URLS)
 	}
 
 	imageUrlResponse := dto.ImageUrlsResponse{
@@ -83,9 +89,11 @@ func getInvalidRequest(ctx *fiber.Ctx) error {
 	)
 }
 
-func manageError(ctx *fiber.Ctx, err error) error {
+func manageError(ctx *fiber.Ctx, err error, event string) error {
 
 	var appErr *customerrors.AppError
+
+	logger.Log.WithError(err).Errorf("Error during event %v ", event)
 
 	if !errors.As(err, &appErr) {
 		return getInternalServerError(ctx)
