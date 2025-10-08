@@ -14,6 +14,7 @@ spec:
       labels:
         app: product-command
     spec:
+      serviceAccountName: go-service-sa
       containers:
 
         - name: product-command
@@ -43,19 +44,13 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
-          volumeMounts:
-            - name: aws-credentials 
-              mountPath: /root/.aws
-      volumes: 
-        - name: aws-credentials 
-          hostPath: 
-            path: /run/desktop/mnt/host/c/Users/esdag/.aws
-            type: Directory
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: product-command
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
 spec:
   selector: 
     app: product-command
