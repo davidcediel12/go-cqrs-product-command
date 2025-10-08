@@ -11,6 +11,7 @@ import (
 	"cqrs/command/internal/logger"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -49,7 +50,10 @@ func main() {
 }
 
 func connectToPostgres() *pgxpool.Pool {
-	connStr := "postgres://postgres:admin@localhost:5432/products?sslmode=disable"
+
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=require",
+		os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
 
 	pool, err := pgxpool.New(context.Background(), connStr)
 
