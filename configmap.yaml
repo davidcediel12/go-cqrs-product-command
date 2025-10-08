@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-cqrs
+  namespace: default
+data:
+  DB_HOST: database-1.cpsyiee2mx8f.us-east-2.rds.amazonaws.com
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
