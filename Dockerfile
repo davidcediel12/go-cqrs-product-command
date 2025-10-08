@@ -1,14 +1,14 @@
-FROM golang:1.25.1
+FROM golang:1.25.2-alpine
 
 WORKDIR /app
 
-COPY go.mod go.sum/
+COPY go.mod go.sum ./
 
 RUN go mod download 
 
 COPY . . 
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o product-command ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o product-command ./cmd/app
 
 EXPOSE 8080
 
