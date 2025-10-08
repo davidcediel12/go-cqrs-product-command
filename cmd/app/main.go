@@ -8,6 +8,7 @@ import (
 	"cqrs/command/internal/infrastructure/persistence"
 	"cqrs/command/internal/infrastructure/routes"
 	"cqrs/command/internal/infrastructure/storage"
+	"cqrs/command/internal/logger"
 	"fmt"
 	"log"
 	"time"
@@ -32,6 +33,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to connect to AWS services")
 	}
+
+	logger.Init()
 
 	injectDependencies(sdkConfig)
 
