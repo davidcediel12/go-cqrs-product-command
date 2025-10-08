@@ -1,0 +1,9 @@
+services:
+  product-command:
+    image: go-product-command
+    env_file:
+      - envs/.env
+    volumes:
+      - ~/.aws:/root/.aws:ro
+    ports:
+      - "8080:8080"
