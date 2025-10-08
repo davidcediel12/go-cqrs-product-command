@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	customerrors "cqrs/command/internal/custom_errors"
 	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
 	"fmt"
@@ -28,7 +29,8 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 	transaction, err := r.pool.Begin(ctx)
 
 	if err != nil {
-		return dto.ProductDto{}, err
+		return dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
+			"error while starting the transaction", err)
 	}
 
 	defer func() {
@@ -45,7 +47,8 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 		createProductRequest.Price, createProductRequest.Stock)
 
 	if err != nil {
-		return dto.ProductDto{}, fmt.Errorf("saving product failed: %w", err)
+		return dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
+			"saving product failed", err)
 	}
 
 	productImages, err := r.saveProductImages(ctx, transaction, createProductRequest.Images, productId)
@@ -55,7 +58,8 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 	}
 
 	if err := transaction.Commit(ctx); err != nil {
-		return dto.ProductDto{}, fmt.Errorf("Error while commiting the transaction: %w", err)
+		return dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
+			"error while commiting the transaction", err)
 	}
 
 	log.Infof("Product successfully saved with ID: %v", productId)

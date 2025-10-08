@@ -2,7 +2,9 @@ package controller
 
 import (
 	"cqrs/command/internal/application"
+	customerrors "cqrs/command/internal/custom_errors"
 	"cqrs/command/internal/infrastructure/dto"
+	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -34,7 +36,11 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 
 	fmt.Println(productRequest)
 
-	product, _ := c.createProductService.CreateProduct(ctx.UserContext(), &productRequest)
+	product, err := c.createProductService.CreateProduct(ctx.UserContext(), &productRequest)
+
+	if err != nil {
+		manageError(ctx, err)
+	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(product)
 }
@@ -50,14 +56,7 @@ func (c *ProductController) CreateImageUrls(ctx *fiber.Ctx) error {
 	urls, err := c.generateImageUrlService.GenerateUrls(ctx.UserContext(), imageNames)
 
 	if err != nil {
-
-		fmt.Errorf("Error creating the urls: %w", err)
-
-		return ctx.Status(fiber.StatusInternalServerError).JSON(
-			fiber.Map{
-				"error": err.Error(),
-			},
-		)
+		manageError(ctx, err)
 	}
 
 	imageUrlResponse := dto.ImageUrlsResponse{
@@ -68,12 +67,46 @@ func (c *ProductController) CreateImageUrls(ctx *fiber.Ctx) error {
 
 }
 
+func getInternalServerError(ctx *fiber.Ctx) error {
+	return ctx.Status(fiber.StatusInternalServerError).JSON(
+		fiber.Map{
+			"error": "Internal server error",
+		},
+	)
+}
+
 func getInvalidRequest(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusBadRequest).JSON(
 		fiber.Map{
-			"error": "Invalid request body",
+			"error": "Invalid request",
 		},
 	)
+}
+
+func manageError(ctx *fiber.Ctx, err error) error {
+
+	var appErr *customerrors.AppError
+
+	if !errors.As(err, &appErr) {
+		return getInternalServerError(ctx)
+	}
+
+	switch appErr.Type {
+	case customerrors.ValidationError:
+
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(
+			fiber.Map{
+				"error": appErr.Message,
+			},
+		)
+
+	case customerrors.InternalError:
+
+		return getInternalServerError(ctx)
+
+	default:
+		return getInternalServerError(ctx)
+	}
 }
 
 func getImageNames(ctx *fiber.Ctx) ([]string, error) {
