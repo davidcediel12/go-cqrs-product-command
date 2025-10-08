@@ -45,7 +45,7 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 	product, err := c.createProductService.CreateProduct(ctx.UserContext(), &productRequest)
 
 	if err != nil {
-		manageError(ctx, err, CREATE_PRODUCT)
+		return manageError(ctx, err, CREATE_PRODUCT)
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(product)
@@ -62,7 +62,7 @@ func (c *ProductController) CreateImageUrls(ctx *fiber.Ctx) error {
 	urls, err := c.generateImageUrlService.GenerateUrls(ctx.UserContext(), imageNames)
 
 	if err != nil {
-		manageError(ctx, err, GENERATE_IMAGE_URLS)
+		return manageError(ctx, err, GENERATE_IMAGE_URLS)
 	}
 
 	imageUrlResponse := dto.ImageUrlsResponse{
