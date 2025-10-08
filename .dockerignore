@@ -1,0 +1,38 @@
+# Go build artifacts
+bin/
+build/
+*.out
+*.exe
+*.test
+
+# Vendor and modules cache
+vendor/
+pkg/mod/
+
+# Temporary and local files
+*.log
+*.tmp
+*.swp
+*.DS_Store
+
+# Git & IDE
+.git
+.gitignore
+.vscode/
+.idea/
+*.iml
+
+# Docker files
+Dockerfile
+docker-compose.yml
+
+# Tests & coverage
+coverage.*
+*.cover
+*.cov
+
+
+# Environment & config (you’ll inject via Kubernetes)
+.env
+.env.*
+config/local.yaml
