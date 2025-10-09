@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -43,6 +44,11 @@ func main() {
 	injectDependencies(sdkConfig, pool)
 
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	routes.Routes(app, *productController)
 
