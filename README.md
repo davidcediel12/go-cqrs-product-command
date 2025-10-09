@@ -5,7 +5,7 @@ This microservice is part of the PoC that implements the Command Query Responsib
 The main technologies used are:
 - Go
 - Fiber
-- AWS SDKs
+- AWS SDKs (S3 and SNS)
 
 
 ![image](assets/image.png)
