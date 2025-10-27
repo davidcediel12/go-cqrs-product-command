@@ -4,6 +4,7 @@ import (
 	"context"
 	"cqrs/command/internal/application/ports"
 	"cqrs/command/internal/infrastructure/dto"
+	"cqrs/command/internal/logger"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -32,8 +33,12 @@ func (p *SnsPublisher) PublishNewProduct(ctx context.Context, topic string, prod
 		return fmt.Errorf("error while converting the product %v into json: %w", productDto, err)
 	}
 
+	topicArn := fmt.Sprintf("%v:%v", os.Getenv("SNS_ARN"), topic)
+
+	logger.Log.Infof("Publishing new message to topic %v", topicArn)
+
 	publishInput := sns.PublishInput{
-		TopicArn: aws.String(os.Getenv("SNS_ARN") + topic),
+		TopicArn: aws.String(topicArn),
 		Message:  aws.String(string(jsonData)),
 	}
 

@@ -33,7 +33,7 @@ func (s *CreateProductServiceImpl) CreateProduct(ctx context.Context,
 
 	logger.Log.Infof("Product %v created", productDto.Id)
 
-	err = s.messagePublisher.PublishNewProduct(ctx, "product", &productDto) // TODO change to env var
+	err = s.messagePublisher.PublishNewProduct(ctx, "products", &productDto) // TODO change to env var
 
 	if err != nil {
 		return dto.ProductDto{}, err
