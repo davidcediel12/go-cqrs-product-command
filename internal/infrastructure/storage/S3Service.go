@@ -4,6 +4,7 @@ import (
 	"context"
 	"cqrs/command/internal/application/ports"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -24,7 +25,7 @@ func NewStorageService(s3PresignClient *s3.PresignClient) ports.StorageService {
 func (s *S3Service) GenerateUrl(ctx context.Context, imageName string) (string, error) {
 
 	request, err := s.s3PresignClient.PresignPutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String("first-bucket-cqrs"), // TODO Change to ENV var
+		Bucket: aws.String(os.Getenv("S3_BUCKET")),
 		Key:    aws.String("public/" + imageName),
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = time.Duration(5 * int64(time.Minute))

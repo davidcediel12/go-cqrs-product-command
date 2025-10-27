@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
@@ -32,7 +33,7 @@ func (p *SnsPublisher) PublishNewProduct(ctx context.Context, topic string, prod
 	}
 
 	publishInput := sns.PublishInput{
-		TopicArn: aws.String("arn:aws:sns:us-east-2:641675857246:" + topic), // TODO Move to ENV variables
+		TopicArn: aws.String(os.Getenv("SNS_ARN") + topic),
 		Message:  aws.String(string(jsonData)),
 	}
 
