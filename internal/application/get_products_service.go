@@ -2,12 +2,13 @@ package application
 
 import (
 	"context"
+	"cqrs/command/internal/command"
 	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
 )
 
 type GetProductService interface {
-	GetProducts(ctx context.Context, page, size int) ([]dto.ProductDto, error)
+	GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error)
 }
 
 type GetProductServiceImpl struct {
@@ -21,7 +22,7 @@ func NewGetProductService(productRepository repository.ProductRepository) GetPro
 	}
 }
 
-func (s *GetProductServiceImpl) GetProducts(ctx context.Context, page, size int) ([]dto.ProductDto, error) {
+func (s *GetProductServiceImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
 
-	return s.productRepository.GetProducts(ctx, page, size)
+	return s.productRepository.GetProducts(ctx, productsCommand)
 }

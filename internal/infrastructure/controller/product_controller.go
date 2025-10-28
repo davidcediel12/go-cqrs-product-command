@@ -2,6 +2,7 @@ package controller
 
 import (
 	"cqrs/command/internal/application"
+	"cqrs/command/internal/command"
 	customerrors "cqrs/command/internal/custom_errors"
 	"cqrs/command/internal/infrastructure/dto"
 	"cqrs/command/internal/logger"
@@ -69,7 +70,24 @@ func (c *ProductController) GetProducts(ctx *fiber.Ctx) error {
 		return getInternalServerError(ctx)
 	}
 
-	products, err := c.getProductService.GetProducts(ctx.UserContext(), page, size)
+	withImages, err := strconv.ParseBool(ctx.Query("images", "false"))
+
+	if err != nil {
+		return getInternalServerError(ctx)
+	}
+
+	onlyPrimaryImage, err := strconv.ParseBool(ctx.Query("onlyPrimaryImage", "false"))
+
+	if err != nil {
+		return getInternalServerError(ctx)
+	}
+
+	products, err := c.getProductService.GetProducts(ctx.UserContext(), command.GetProductsCommand{
+		Page:             page,
+		Size:             size,
+		Images:           withImages,
+		OnlyPrimaryImage: onlyPrimaryImage,
+	})
 
 	if err != nil {
 

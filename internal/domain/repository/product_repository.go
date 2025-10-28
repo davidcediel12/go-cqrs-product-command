@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"cqrs/command/internal/command"
 	"cqrs/command/internal/infrastructure/dto"
 )
 
@@ -11,5 +12,5 @@ type ProductRepository interface {
 		createProductRequest *dto.CreateProductRequest,
 	) (dto.ProductDto, error)
 
-	GetProducts(ctx context.Context, page, size int) ([]dto.ProductDto, error)
+	GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error)
 }

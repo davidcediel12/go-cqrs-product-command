@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"cqrs/command/internal/command"
 	customerrors "cqrs/command/internal/custom_errors"
 	"cqrs/command/internal/domain/repository"
 	"cqrs/command/internal/infrastructure/dto"
@@ -74,14 +75,14 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 	}, nil
 }
 
-func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, page, size int) ([]dto.ProductDto, error) {
+func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
 
-	logger.Log.Infof("Executing query to retrieve products with page %v and size %v", page, size)
+	logger.Log.Infof("Executing query to retrieve products with page %v and size %v", productsCommand.Page, productsCommand.Size)
 
 	queryGetProducts := `SELECT p.id, p.product_name, p.price, p.stock FROM products p 
 	ORDER BY p.product_name offset $1 limit $2`
 
-	rows, err := r.pool.Query(ctx, queryGetProducts, page, size)
+	rows, err := r.pool.Query(ctx, queryGetProducts, productsCommand.Page, productsCommand.Size)
 
 	if err != nil {
 		return []dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
