@@ -77,8 +77,77 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 
 func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
 
-	logger.Log.Infof("Executing query to retrieve products with page %v and size %v", productsCommand.Page, productsCommand.Size)
+	logger.Log.Infof("Executing query to retrieve products with: %v", productsCommand)
 
+	if productsCommand.Images {
+		return r.getProductsWithImages(ctx, productsCommand)
+	}
+
+	return r.getProducts(ctx, productsCommand)
+
+}
+
+func (r *ProductRepositoryImpl) getProductsWithImages(ctx context.Context,
+	productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
+
+	queryGetProducts := `SELECT p.id, p.product_name, p.price, p.stock, pi.id as image_id, pi.url, pi.is_primary
+	FROM products p INNER JOIN product_images pi ON p.id = pi.product_id
+	ORDER BY p.product_name`
+
+	productsMap := make(map[uuid.UUID]*dto.ProductDto)
+
+	rows, err := r.pool.Query(ctx, queryGetProducts)
+
+	if err != nil {
+		return []dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
+			"error while performing the query to obtain products", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var product productRow
+
+		if err = rows.Scan(&product.ProductID, &product.ProductName, &product.Price, &product.Stock,
+			&product.ImageID, &product.ImageURL, &product.IsPrimary); err != nil {
+
+			return nil, customerrors.NewAppError(customerrors.InternalError,
+				"error while mapping sql rows to product object", err)
+		}
+
+		productDto, exists := productsMap[product.ProductID]
+
+		imageDto := dto.ProductImageDto{
+			Id:        product.ImageID,
+			Url:       product.ImageURL,
+			IsPrimary: product.IsPrimary,
+		}
+
+		if !exists {
+
+			productsMap[product.ProductID] = &dto.ProductDto{
+				Id:     product.ProductID,
+				Name:   product.ProductName,
+				Price:  product.Price,
+				Stock:  product.Stock,
+				Images: []dto.ProductImageDto{imageDto},
+			}
+		} else {
+			productDto.Images = append(productDto.Images, imageDto)
+		}
+	}
+
+	productsDto := make([]dto.ProductDto, 0, len(productsMap))
+
+	for _, product := range productsMap {
+		productsDto = append(productsDto, *product)
+	}
+
+	return productsDto, nil
+
+}
+
+func (r *ProductRepositoryImpl) getProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
 	queryGetProducts := `SELECT p.id, p.product_name, p.price, p.stock FROM products p 
 	ORDER BY p.product_name offset $1 limit $2`
 
@@ -98,7 +167,8 @@ func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, productsCommand
 		var product dto.ProductDto
 
 		if err = rows.Scan(&product.Id, &product.Name, &product.Price, &product.Stock); err != nil {
-			return []dto.ProductDto{}, err
+			return nil, customerrors.NewAppError(customerrors.InternalError,
+				"error while mapping from sql row to object while obtaining products", err)
 		}
 
 		products = append(products, product)
@@ -136,4 +206,14 @@ func (r *ProductRepositoryImpl) saveProductImages(ctx context.Context, transacti
 
 	return createdImages, nil
 
+}
+
+type productRow struct {
+	ProductID   uuid.UUID
+	ProductName string
+	Price       float64
+	Stock       float64
+	ImageID     string
+	ImageURL    string
+	IsPrimary   bool
 }
