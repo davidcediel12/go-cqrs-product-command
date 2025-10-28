@@ -12,5 +12,5 @@ type ProductRepository interface {
 		createProductRequest *dto.CreateProductRequest,
 	) (dto.ProductDto, error)
 
-	GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error)
+	GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) (dto.ProductsPage, error)
 }

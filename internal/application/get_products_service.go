@@ -8,7 +8,7 @@ import (
 )
 
 type GetProductService interface {
-	GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error)
+	GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) (dto.ProductsPage, error)
 }
 
 type GetProductServiceImpl struct {
@@ -22,7 +22,7 @@ func NewGetProductService(productRepository repository.ProductRepository) GetPro
 	}
 }
 
-func (s *GetProductServiceImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
+func (s *GetProductServiceImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) (dto.ProductsPage, error) {
 
 	return s.productRepository.GetProducts(ctx, productsCommand)
 }

@@ -8,6 +8,7 @@ import (
 	"cqrs/command/internal/infrastructure/dto"
 	"cqrs/command/internal/logger"
 	"fmt"
+	"math"
 
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
@@ -75,18 +76,45 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 	}, nil
 }
 
-func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
+func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, productsCommand command.GetProductsCommand) (dto.ProductsPage, error) {
 
 	logger.Log.Infof("Executing query to retrieve products with: %v", productsCommand)
 
 	offset := productsCommand.Page * productsCommand.Size
 
+	var products []dto.ProductDto
+	var err error
+
 	if productsCommand.Images {
-		return r.getProductsWithImages(ctx, productsCommand, offset)
+		products, err = r.getProductsWithImages(ctx, productsCommand, offset)
+	} else {
+		products, err = r.getProducts(ctx, productsCommand, offset)
 	}
 
-	return r.getProducts(ctx, productsCommand, offset)
+	if err != nil {
+		return dto.ProductsPage{}, err
+	}
 
+	totalProducts := r.getTotalProducts(ctx)
+
+	return dto.ProductsPage{
+		Pages:    int(math.Ceil(float64(totalProducts / productsCommand.Size))),
+		Items:    totalProducts,
+		Products: products,
+	}, nil
+
+}
+
+func (r *ProductRepositoryImpl) getTotalProducts(ctx context.Context) int {
+	query := `SELECT count(*) FROM products`
+
+	var totalProducts int
+
+	row := r.pool.QueryRow(ctx, query)
+
+	row.Scan(&totalProducts)
+
+	return totalProducts
 }
 
 func (r *ProductRepositoryImpl) getProductsWithImages(ctx context.Context,
