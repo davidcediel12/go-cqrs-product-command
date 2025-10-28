@@ -7,6 +7,7 @@ import (
 	"cqrs/command/internal/logger"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,15 +19,18 @@ const (
 
 type ProductController struct {
 	createProductService    application.CreateProductService
+	getProductService       application.GetProductService
 	generateImageUrlService application.GenerateImageUrlService
 }
 
 func NewProductController(
 	createProductService application.CreateProductService,
+	getProductService application.GetProductService,
 	generateImageUrlService application.GenerateImageUrlService) *ProductController {
 
 	return &ProductController{
 		createProductService:    createProductService,
+		getProductService:       getProductService,
 		generateImageUrlService: generateImageUrlService,
 	}
 }
@@ -49,6 +53,26 @@ func (c *ProductController) CreateProduct(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(product)
+}
+
+func (c *ProductController) GetProducts(ctx *fiber.Ctx) error {
+
+	page, err := strconv.Atoi(ctx.Query("page", "0"))
+
+	if err != nil {
+
+		return getInternalServerError(ctx)
+	}
+	size, err := strconv.Atoi(ctx.Query("size", "5"))
+
+	if err != nil {
+		return getInternalServerError(ctx)
+	}
+
+	products, err := c.getProductService.GetProducts(page, size)
+
+	return ctx.Status(fiber.StatusOK).JSON(products)
+
 }
 
 func (c *ProductController) CreateImageUrls(ctx *fiber.Ctx) error {

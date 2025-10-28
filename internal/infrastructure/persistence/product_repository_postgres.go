@@ -73,6 +73,10 @@ func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context,
 	}, nil
 }
 
+func (r *ProductRepositoryImpl) GetProducts(page, size int) ([]dto.ProductDto, error) {
+	return []dto.ProductDto{}, nil
+}
+
 func (r *ProductRepositoryImpl) saveProductImages(ctx context.Context, transaction pgx.Tx,
 	productImages []dto.CreateProductImage, productId uuid.UUID) ([]dto.ProductImageDto, error) {
 

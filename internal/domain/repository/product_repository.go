@@ -10,4 +10,6 @@ type ProductRepository interface {
 		context context.Context,
 		createProductRequest *dto.CreateProductRequest,
 	) (dto.ProductDto, error)
+
+	GetProducts(page, size int) ([]dto.ProductDto, error)
 }

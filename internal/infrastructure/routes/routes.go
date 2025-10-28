@@ -10,4 +10,5 @@ func Routes(app *fiber.App, productController controller.ProductController) {
 
 	app.Post("/products", productController.CreateProduct)
 	app.Post("/products/images/generate", productController.CreateImageUrls)
+	app.Get("/products", productController.GetProducts)
 }

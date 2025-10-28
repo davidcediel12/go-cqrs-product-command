@@ -96,6 +96,7 @@ func injectDependencies(sdkConfig aws.Config, pool *pgxpool.Pool) {
 	productRepository := persistence.NewProductRepository(pool)
 
 	createProductService := application.NewProductService(productRepository, messagePublisher)
+	getProductService := application.NewGetProductService(productRepository)
 
-	productController = controller.NewProductController(createProductService, generateImageService)
+	productController = controller.NewProductController(createProductService, getProductService, generateImageService)
 }
