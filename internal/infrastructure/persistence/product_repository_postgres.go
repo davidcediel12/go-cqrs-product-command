@@ -79,24 +79,52 @@ func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, productsCommand
 
 	logger.Log.Infof("Executing query to retrieve products with: %v", productsCommand)
 
+	offset := productsCommand.Page * productsCommand.Size
+
 	if productsCommand.Images {
-		return r.getProductsWithImages(ctx, productsCommand)
+		return r.getProductsWithImages(ctx, productsCommand, offset)
 	}
 
-	return r.getProducts(ctx, productsCommand)
+	return r.getProducts(ctx, productsCommand, offset)
 
 }
 
 func (r *ProductRepositoryImpl) getProductsWithImages(ctx context.Context,
-	productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
+	productsCommand command.GetProductsCommand, offset int) ([]dto.ProductDto, error) {
 
-	queryGetProducts := `SELECT p.id, p.product_name, p.price, p.stock, pi.id as image_id, pi.url, pi.is_primary
-	FROM products p INNER JOIN product_images pi ON p.id = pi.product_id
+	queryProductIds := `SELECT p.id from products p order by p.product_name offset $1 limit $2`
+
+	rows, err := r.pool.Query(ctx, queryProductIds, offset, productsCommand.Size)
+
+	if err != nil {
+		return []dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
+			"error while performing the query to obtain products", err)
+	}
+
+	var productIds []uuid.UUID
+
+	for rows.Next() {
+
+		var productId uuid.UUID
+
+		rows.Scan(&productId)
+
+		productIds = append(productIds, productId)
+	}
+
+	logger.Log.Infof("Obtained the products: %v to then obtain the images", productIds)
+
+	queryGetProducts := `SELECT p.id, p.product_name, p.price, p.stock, 
+	pi.id  as image_id, 
+	COALESCE(pi.url, ''), 
+	COALESCE(pi.is_primary, false)
+	FROM products p left JOIN product_images pi ON p.id = pi.product_id
+	WHERE p.id = ANY($1)
 	ORDER BY p.product_name`
 
 	productsMap := make(map[uuid.UUID]*dto.ProductDto)
 
-	rows, err := r.pool.Query(ctx, queryGetProducts)
+	rows, err = r.pool.Query(ctx, queryGetProducts, productIds)
 
 	if err != nil {
 		return []dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
@@ -118,7 +146,7 @@ func (r *ProductRepositoryImpl) getProductsWithImages(ctx context.Context,
 		productDto, exists := productsMap[product.ProductID]
 
 		imageDto := dto.ProductImageDto{
-			Id:        product.ImageID,
+			Id:        product.ImageID.String(),
 			Url:       product.ImageURL,
 			IsPrimary: product.IsPrimary,
 		}
@@ -147,11 +175,13 @@ func (r *ProductRepositoryImpl) getProductsWithImages(ctx context.Context,
 
 }
 
-func (r *ProductRepositoryImpl) getProducts(ctx context.Context, productsCommand command.GetProductsCommand) ([]dto.ProductDto, error) {
+func (r *ProductRepositoryImpl) getProducts(ctx context.Context, productsCommand command.GetProductsCommand,
+	offset int) ([]dto.ProductDto, error) {
+
 	queryGetProducts := `SELECT p.id, p.product_name, p.price, p.stock FROM products p 
 	ORDER BY p.product_name offset $1 limit $2`
 
-	rows, err := r.pool.Query(ctx, queryGetProducts, productsCommand.Page, productsCommand.Size)
+	rows, err := r.pool.Query(ctx, queryGetProducts, offset, productsCommand.Size)
 
 	if err != nil {
 		return []dto.ProductDto{}, customerrors.NewAppError(customerrors.InternalError,
@@ -213,7 +243,7 @@ type productRow struct {
 	ProductName string
 	Price       float64
 	Stock       float64
-	ImageID     string
+	ImageID     uuid.UUID
 	ImageURL    string
 	IsPrimary   bool
 }
