@@ -69,7 +69,14 @@ func (c *ProductController) GetProducts(ctx *fiber.Ctx) error {
 		return getInternalServerError(ctx)
 	}
 
-	products, err := c.getProductService.GetProducts(page, size)
+	products, err := c.getProductService.GetProducts(ctx.UserContext(), page, size)
+
+	if err != nil {
+
+		logger.Log.Error("Error obtaining products", err)
+
+		return getInternalServerError(ctx)
+	}
 
 	return ctx.Status(fiber.StatusOK).JSON(products)
 
